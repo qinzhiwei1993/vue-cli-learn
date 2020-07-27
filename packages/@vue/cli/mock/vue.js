@@ -5,7 +5,7 @@
 
 // semver npm语义版本控制
 // chalk 控制台颜色输出
-// leven 比较两个字符串间的差异
+// leven 比较两个字符串间的差异，输出几处不同
 const { chalk, semver } = require('@vue/cli-shared-utils')
 const requiredVersion = require('../package.json').engines.node
 const leven = require('leven')
