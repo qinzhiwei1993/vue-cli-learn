@@ -247,7 +247,7 @@ program.on('--help', () => {
   console.log()
 })
 
-program.commands.forEach(c => c.on('--help', () => console.log()))
+program.commands.forEach(c => c.on('--help', () => console.log('====help=====')))
 
 // enhance common error messages
 const enhanceErrorMessages = require('../lib/util/enhanceErrorMessages')

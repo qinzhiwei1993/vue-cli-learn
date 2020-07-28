@@ -3,7 +3,7 @@
   "version": "4.4.0",
   "description": "Command line interface for rapid Vue.js development",
   "bin": {
-    "vue-test": "bin/vue.js"
+    "vue-test": "mock/vue.js"
   },
   "repository": {
     "type": "git",
