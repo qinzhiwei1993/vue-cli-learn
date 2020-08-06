@@ -19,9 +19,8 @@ async function create (projectName, options) {
     process.env.HTTP_PROXY = options.proxy
   }
 
-
-  // process.cwd()  node命令执行时所在的目录
-  // __dirname 被执行js所在的文件夹
+  // process.cwd()  node命令执行时所在的目录 /Users/qinzhiwei/IT/git/source-code/vue-cli/packages/@vue/cli
+  // __dirname 被执行js所在的文件夹 /Users/qinzhiwei/IT/git/source-code/vue-cli/packages/@vue/cli/lib
 
   const cwd = options.cwd || process.cwd()
   const inCurrent = projectName === '.' // 是否以当前文件为初始化项目的根目录
@@ -47,7 +46,6 @@ async function create (projectName, options) {
     if (options.force) {
       await fs.remove(targetDir)
     } else {
-      
       await clearConsole() // 这里执行失败 ？？？？？？
       if (inCurrent) {
         const { ok } = await inquirer.prompt([
@@ -61,7 +59,6 @@ async function create (projectName, options) {
           return
         }
       } else {
-        
         const { action } = await inquirer.prompt([
           {
             name: 'action',

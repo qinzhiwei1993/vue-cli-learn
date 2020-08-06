@@ -55,7 +55,7 @@ program
 program
   .command('create <app-name>')
   .description('create a new project powered by vue-cli-service')
-  .option('-p, --preset <presetName>', 'Skip prompts and use saved or remote preset')
+  .option('-p, --preset <presetName>', 'Skip prompts and use saved or remote preset') 
   .option('-d, --default', 'Skip prompts and use default preset')
   .option('-i, --inlinePreset <json>', 'Skip prompts and use inline JSON string as preset')
   .option('-m, --packageManager <command>', 'Use specified npm client when installing dependencies')
@@ -69,19 +69,16 @@ program
   .option('-b, --bare', 'Scaffold project without beginner instructions')
   .option('--skipGetStarted', 'Skip displaying "Get started" instructions')
   .action((name, cmd) => { // name 输入的参数<app-name>  cmd 定义的command对象
-    const options = cleanArgs(cmd)
+    // console.log('cmd', cmd)
+    const options = cleanArgs(cmd) // { preset: 'test', default: true, git: true, force: true }
 
-    // console.log('========== name ==========', name)
-    // console.log('========== cmd ==========', cmd)
-    // console.log('========== options ==========', options)
     // process.argv
     // [ '/Users/qinzhiwei/.nvm/versions/node/v10.21.0/bin/node', // node的运行路径
     //   '/Users/qinzhiwei/.nvm/versions/node/v10.21.0/bin/vue-test', // 当前command的运行路径
     //   'create', // command 名称
     //   'tess'  // 参数
     // ]
-    // console.log('========== process.argv ==========',process.argv)
-    
+
     if (minimist(process.argv.slice(3))._.length > 1) {
       console.log(chalk.yellow('\n Info: You provided more than one argument. The first one will be used as the app\'s name, the rest are ignored.'))
     }
@@ -92,7 +89,6 @@ program
 
     require('../lib/create')(name, options)
 
-    
   })
 
 program

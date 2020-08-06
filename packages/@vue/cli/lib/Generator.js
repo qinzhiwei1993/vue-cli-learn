@@ -84,6 +84,7 @@ module.exports = class Generator {
     files = {},
     invoking = false
   } = {}) {
+    console.log('==== constructor======', afterInvokeCbs, afterAnyInvokeCbs)
     this.context = context
     this.plugins = plugins
     this.originalPkg = pkg
@@ -119,10 +120,6 @@ module.exports = class Generator {
       : inferRootOptions(pkg)
 
     this.rootOptions = rootOptions
-    console.log('===== cliService ======', cliService)
-    console.log('===== rootOptions ======', rootOptions)
-    console.log('===== plugins ======', this.plugins)
-    console.log('===== all plugins ======', this.allPluginIds)
   }
 
   async initPlugins () {
@@ -138,7 +135,6 @@ module.exports = class Generator {
         await pluginGenerator.hooks(api, {}, rootOptions, pluginIds)
       }
     }
-    console.log('==== resolve fileMiddlewares1 ========', this.fileMiddlewares)
 
     // We are doing save/load to make the hook order deterministic
     // save "any" hooks
@@ -148,7 +144,7 @@ module.exports = class Generator {
     this.afterInvokeCbs = this.passedAfterInvokeCbs
     this.afterAnyInvokeCbs = []
     this.postProcessFilesCbs = []
-
+    // 项目目录结构、文件、依赖
     // apply generators from plugins
     for (const plugin of this.plugins) {
       const { id, apply, options } = plugin
@@ -178,16 +174,15 @@ module.exports = class Generator {
     
     // wait for file resolve
     await this.resolveFiles() // 此时已整理好全部需要安装的文件
-    console.log('====== this.files =======', this.files)
     // set package.json
     this.sortPkg()
     this.files['package.json'] = JSON.stringify(this.pkg, null, 2) + '\n'
-    console.log('====== package.json =======', initialFiles)
     
     // write/update file tree to disk
     await writeFileTree(this.context, this.files, initialFiles)
   }
 
+  // 将eslint、babel、browserslist等在package.json中的配置提取到对应文件
   extractConfigFiles (extractAll, checkExisting) {
     const configTransforms = Object.assign({},
       defaultConfigTransforms,
@@ -272,12 +267,10 @@ module.exports = class Generator {
 
   async resolveFiles () {
     const files = this.files
-    console.log('==== resolve filess ========', files)
-    // console.log('==== resolve fileMiddlewares ========', this.fileMiddlewares)
+    console.log('==== resolve files ========', files)
     for (const middleware of this.fileMiddlewares) {
       await middleware(files, ejs.render)
     }
-    // console.log('====== fileMiddlewares =====', this.fileMiddlewares)
 
     // normalize file paths on windows
     // all paths are converted to use / instead of \

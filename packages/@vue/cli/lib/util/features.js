@@ -20,7 +20,9 @@ exports.getFeatures = (preset) => {
 
 exports.formatFeatures = (preset, lead, joiner) => {
   const features = exports.getFeatures(preset)
+  
   return features.map(dep => {
+    // [ '@vue/cli-plugin-babel', '@vue/cli-plugin-eslint' ] => babel eslint
     dep = toShortPluginId(dep)
     return `${lead || ''}${chalk.yellow(dep)}`
   }).join(joiner || ', ')

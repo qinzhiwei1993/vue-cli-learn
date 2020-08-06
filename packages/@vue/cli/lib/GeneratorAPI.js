@@ -278,8 +278,10 @@ class GeneratorAPI {
    */
   render (source, additionalData = {}, ejsOptions = {}) {
     const baseDir = extractCallDir()
+    console.log('======= baseDir ========', baseDir)
     if (isString(source)) {
       source = path.resolve(baseDir, source)
+      // files -> Generator.files
       this._injectFileMiddleware(async (files) => {
         const data = this._resolveData(additionalData)
         const globby = require('globby')
@@ -298,7 +300,9 @@ class GeneratorAPI {
           }).join('/')
           const sourcePath = path.resolve(source, rawPath)
           console.log('===== sourcePath =====', sourcePath)
+          // 生成文件内容
           const content = renderFile(sourcePath, data, ejsOptions)
+          // console.log('======= content =========', content)
           // only set file if it's not all whitespace, or is a Buffer (binary files)
           if (Buffer.isBuffer(content) || /[^\s]/.test(content)) {
             files[targetPath] = content
@@ -464,12 +468,13 @@ function extractCallDir () {
 
 const replaceBlockRE = /<%# REPLACE %>([^]*?)<%# END_REPLACE %>/g
 
+// 生成模板文件 ejs模板引擎
 function renderFile (name, data, ejsOptions) {
   if (isBinaryFileSync(name)) {
     return fs.readFileSync(name) // return buffer
   }
   const template = fs.readFileSync(name, 'utf-8')
-
+  console.log('====template =========', template)
   // custom template inheritance via yaml front matter.
   // ---
   // extend: 'source-file'
@@ -481,6 +486,9 @@ function renderFile (name, data, ejsOptions) {
   // ---
   const yaml = require('yaml-front-matter')
   const parsed = yaml.loadFront(template)
+  console.log('==== parsed =========', parsed)
+  console.log('==== when =========', parsed.when)
+  console.log('==== extend =========', parsed.extend)
   const content = parsed.__content
   let finalTemplate = content.trim() + `\n`
 

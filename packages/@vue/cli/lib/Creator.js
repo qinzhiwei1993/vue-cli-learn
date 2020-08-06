@@ -20,6 +20,7 @@ const { resolvePkg } = require('@vue/cli-shared-utils')
 
 debug.enable('vue-cli:answers')
 // debug.enable('vue-cli:prompts')
+// debug.enable('vue-cli:prompts')
 
 const {
   defaults,
@@ -60,70 +61,26 @@ module.exports = class Creator extends EventEmitter {
 
     this.name = name
     this.context = process.env.VUE_CLI_CONTEXT = context
-    // console.log('======= promptModules =======', promptModules)
     const { presetPrompt, featurePrompt } = this.resolveIntroPrompts()
-    // { 
-    //   name: 'preset',
-    //   type: 'list',
-    //   message: 'Please pick a preset:',
-    //   choices:
-    //     [ 
-    //       { 
-    //         name: 'default (\u001b[33mbabel\u001b[39m, \u001b[33meslint\u001b[39m)',
-    //         value: 'default' 
-    //       },
-    //       { name: 'Manually select features', 
-    //         value: '__manual__' 
-    //       } 
-    //     ]
-    // }
+    
     this.presetPrompt = presetPrompt
-    // { 
-    //   name: 'features',
-    //   when: [Function: isManualMode],
-    //   type: 'checkbox',
-    //   message: 'Check the features needed for your project:',
-    //   choices: [],
-    //   pageSize: 10 
-    // }
+    
     this.featurePrompt = featurePrompt
-    // [ 
-    //   { 
-    //     name: 'useConfigFiles',
-    //     when: [Function: isManualMode],
-    //     type: 'list',
-    //     message: 'Where do you prefer placing config for Babel, ESLint, etc.?',
-    //     choices: [ [Object], [Object] ] 
-    //   },
-    //   { name: 'save',
-    //     when: [Function: isManualMode],
-    //     type: 'confirm',
-    //     message: 'Save this as a preset for future projects?',
-    //     default: false 
-    //   },
-    //   { 
-    //     name: 'saveName',
-    //     when: [Function: when],
-    //     type: 'input',
-    //     message: 'Save preset as:' 
-    //   } 
-    // ]
+
     this.outroPrompts = this.resolveOutroPrompts()
+    // 注入prompt
     this.injectedPrompts = []
+    // prompt结束回调
     this.promptCompleteCbs = []
+    // 调用人回调
     this.afterInvokeCbs = []
+    // 任何调用的回调
     this.afterAnyInvokeCbs = []
-    // console.log('===== presetPrompt =========', presetPrompt)
-    
-    // console.log('===== featurePrompt =========', featurePrompt)
-    
-    // console.log('===== outroPrompts =========', this.outroPrompts)
-    
 
     this.run = this.run.bind(this)
     const promptAPI = new PromptModuleAPI(this)
-    // console.log('===== promptAPI =========', promptAPI)
-    // 载入提示提示模块
+    // 载入提示模块
+    // 至此所有的提示全部构建完成， 就剩下组装了
     promptModules.forEach(m => m(promptAPI))
   }
 
@@ -156,10 +113,6 @@ module.exports = class Creator extends EventEmitter {
     
 
     // clone before mutating
-    //preset  { useConfigFiles: true,
-    //   plugins:
-    //    { '@vue/cli-plugin-babel': {},
-    //      '@vue/cli-plugin-eslint': { config: 'base', lintOn: [Array] } } }
     preset = cloneDeep(preset)
     // inject core service
     preset.plugins['@vue/cli-service'] = Object.assign({
@@ -243,7 +196,6 @@ module.exports = class Creator extends EventEmitter {
     
 
     // write package.json
-    // console.log('========= package.json ==========', JSON.stringify(pkg, null, 2))
     await writeFileTree(context, {
       'package.json': JSON.stringify(pkg, null, 2)
     })
@@ -287,8 +239,6 @@ module.exports = class Creator extends EventEmitter {
       extractConfigFiles: preset.useConfigFiles
     })
 
-    return
-    
     // install additional deps (injected by generators)
     log(`📦  Installing additional dependencies...`)
     this.emit('creation', { event: 'deps-install' })
@@ -371,24 +321,38 @@ module.exports = class Creator extends EventEmitter {
     return execa(command, args, { cwd: this.context })
   }
 
+  // 拼接inquirer的question
   async promptAndResolvePreset (answers = null) {
     // prompt
     if (!answers) {
-      // await clearConsole(true)
-      // Please pick a preset: (Use arrow keys)
-      //   ❯ default (babel, eslint)
-      //     Manually select features
       answers = await inquirer.prompt(this.resolveFinalPrompts())
     }
-    // { 
-    //   preset: '__manual__',
-    //   features: [ 'babel', 'linter' ],
-    //   eslintConfig: 'base',
-    //   lintOn: [ 'save' ],
-    //   useConfigFiles: 'files',
-    //   save: false 
-    // }
+
+  //  { preset: '__manual__',
+  //    features:
+  //     [ 'babel',
+  //       'ts',
+  //       'pwa',
+  //       'router',
+  //       'vuex',
+  //       'css-preprocessor',
+  //       'linter',
+  //       'unit',
+  //       'e2e' ],
+  //    tsClassComponent: true,
+  //    useTsWithBabel: true,
+  //    historyMode: true,
+  //    cssPreprocessor: 'dart-sass',
+  //    eslintConfig: 'standard',
+  //    lintOn: [ 'save' ],
+  //    unit: 'mocha',
+  //    e2e: 'cypress',
+  //    useConfigFiles: 'files',
+  //    save: true,
+  //    saveName: 'all' }
+
     debug('vue-cli:answers')(answers)
+
     if (answers.packageManager) {
       saveOptions({
         packageManager: answers.packageManager
@@ -409,16 +373,26 @@ module.exports = class Creator extends EventEmitter {
       this.promptCompleteCbs.forEach(cb => cb(answers, preset))
     }
 
-    //preset  { useConfigFiles: true,
+    // { useConfigFiles: true,
     //   plugins:
     //    { '@vue/cli-plugin-babel': {},
-    //      '@vue/cli-plugin-eslint': { config: 'base', lintOn: [Array] } } }
+    //      '@vue/cli-plugin-typescript': { classComponent: true, useTsWithBabel: true },
+    //      '@vue/cli-plugin-pwa': {},
+    //      '@vue/cli-plugin-router': { historyMode: true },
+    //      '@vue/cli-plugin-vuex': {},
+    //      '@vue/cli-plugin-eslint': { config: 'base', lintOn: [Array] },
+    //      '@vue/cli-plugin-unit-mocha': {},
+    //      '@vue/cli-plugin-e2e-cypress': {} },
+    //   cssPreprocessor: 'dart-sass' }
     // validate
     validatePreset(preset)
+
+    console.log('preset =============', preset)
 
     // save preset
     if (answers.save && answers.saveName && savePreset(answers.saveName, preset)) {
       log()
+      // Preset all saved in /Users/qinzhiwei/.vuerc
       log(`🎉  Preset ${chalk.yellow(answers.saveName)} saved in ${chalk.yellow(rcPath)}`)
     }
 
@@ -426,6 +400,7 @@ module.exports = class Creator extends EventEmitter {
     return preset
   }
 
+  // 加载 .vuerc json文件 远程 或者默认的预设
   async resolvePreset (name, clone) {
 
     let preset
@@ -494,25 +469,32 @@ module.exports = class Creator extends EventEmitter {
           options = await prompt(pluginPrompts)
         }
       }
+      // console.log('apply=========', apply)
 
       plugins.push({ id, apply, options })
     }
     return plugins
   }
 
+  // 获取默认预设
   getPresets () {
     const savedOptions = loadOptions()
     return Object.assign({}, savedOptions.presets, defaults.presets)
   }
 
+  // 最开始的预设提示
   resolveIntroPrompts () {
     const presets = this.getPresets()
     const presetChoices = Object.keys(presets).map(name => {
+
       return {
         name: `${name} (${formatFeatures(presets[name])})`,
         value: name
       }
     })
+
+
+    // 默认预设、手动配置
     const presetPrompt = {
       name: 'preset',
       type: 'list',
@@ -525,6 +507,8 @@ module.exports = class Creator extends EventEmitter {
         }
       ]
     }
+
+    // router babel vuex eslint 。。。选择
     const featurePrompt = {
       name: 'features',
       when: isManualMode,
@@ -539,6 +523,7 @@ module.exports = class Creator extends EventEmitter {
     }
   }
 
+  // 结束提示
   resolveOutroPrompts () {
     const outroPrompts = [
       {

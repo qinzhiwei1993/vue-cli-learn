@@ -3,6 +3,7 @@
 // #!/Users/qinzhiwei/.nvm/versions/node/v10.21.0/bin/node  指定固定的node路径
 
 const program = require("commander");
+const leven = require('leven')
 const { chalk } = require("@vue/cli-shared-utils");
 
 program
@@ -39,11 +40,30 @@ program
     console.log('plugin:', plugin)
   })
 
+// 命令推荐
+function suggestCommands (unknownCommand) {
+    const availableCommands = program.commands.map(cmd => cmd._name)
+  
+    let suggestion
+  
+    availableCommands.forEach(cmd => {
+      const isBestMatch = leven(cmd, unknownCommand) < leven(suggestion || '', unknownCommand)
+      if (leven(cmd, unknownCommand) < 3 && isBestMatch) {
+        suggestion = cmd
+      }
+    })
+  
+    if (suggestion) {
+      console.log(`  ` + chalk.red(`Did you mean ${chalk.yellow(suggestion)}?`))
+    }
+  }
+
 // output help information on unknown commands
 program.arguments("<command>").action(cmd => {
   program.outputHelp();
   console.log(`  ` + chalk.red(`Unknown command ${chalk.yellow(cmd)}.`));
   console.log();
+  suggestCommands(cmd)
 });
 
 // add some useful info on help
